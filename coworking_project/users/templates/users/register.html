@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un Compte{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12">
+    <div class="fade-in w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg">
+        
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Créer votre Compte</h1>
+            <p class="mt-2 text-sm text-gray-600">Rejoignez notre communauté et réservez votre espace idéal.</p>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Affichage des erreurs non liées à un champ spécifique (ex: mdp différents) -->
+            {% if form.non_field_errors %}
+                <div class="p-3 text-sm text-red-700 bg-red-100 rounded-lg border border-red-300">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ field }}
+                        {% comment %}
+                        La classe est ajoutée dynamiquement ici via le fichier forms.py si on voulait,
+                        mais on peut aussi la définir manuellement si tous les champs sont similaires.
+                        Pour simplifier, on s'assure que notre formulaire ajoute les bonnes classes.
+                        Pour l'instant, Tailwind cible les 'input' via le type.
+                        Le plus simple est d'appliquer un style global aux inputs de ce formulaire.
+                        {% endcomment %}
+                    </div>
+                    {% if field.errors %}
+                        <div class="text-red-600 text-xs mt-1">
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div>
+                <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600
+                               hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    S'inscrire
+                </button>
+            </div>
+        </form>
+
+        <p class="text-sm text-center text-gray-600">
+            Déjà un compte ?
+            <a href="{% url 'login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                Connectez-vous
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ajoute automatiquement les classes Tailwind à tous les champs du formulaire
+    document.addEventListener('DOMContentLoaded', function() {
+        const formFields = document.querySelectorAll('form input');
+        formFields.forEach(field => {
+            field.classList.add(
+                'w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 
+                'rounded-lg', 'shadow-sm', 'placeholder-gray-400', 'focus:outline-none', 
+                'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500'
+            );
+        });
+    });
+</script>
+{% endblock %}

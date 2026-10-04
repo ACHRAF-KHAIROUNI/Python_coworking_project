@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Mes Réservations{% endblock %}
+
+{% block content %}
+
+
+
+<div class="fade-in space-y-6">
+
+    <!-- En-tête de la page -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">Mes Réservations</h1>
+        <p class="mt-1 text-gray-600">Retrouvez ici l'historique et les détails de vos réservations.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        
+        <button onclick="window.print()" class="no-print flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+            <i class="fas fa-print mr-2"></i>
+            Imprimer
+        </button>
+        <a href="{% url 'company:salle_list' %}"
+           class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
+            <i class="fas fa-plus mr-2"></i>
+            Nouvelle réservation
+        </a>
+    </div>
+</div>
+
+
+
+    <!-- Barre de recherche -->
+    <div class="relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-search text-gray-400"></i>
+        </span>
+        <input type="text" id="searchInput" placeholder="Rechercher par nom de salle ou par date (jj/mm/aaaa)..."
+               class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <!-- Liste des réservations -->
+    <div id="reservations-list" class="space-y-4">
+        {% for resa in reservations %}
+            <div class="reservation-card bg-white p-4 rounded-lg shadow-lg flex flex-col md:flex-row items-center justify-between gap-4"
+                 data-salle="{{ resa.salle.nom|lower }}"
+                 data-date="{{ resa.date_reservation|date:'d/m/Y' }}">
+                
+                <!-- Info Salle & Date -->
+                <div class="flex-1 text-center md:text-left">
+                    <p class="font-bold text-lg text-gray-800">{{ resa.salle.nom }}</p>
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-calendar-alt mr-1"></i> {{ resa.date_reservation|date:"d F Y" }}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-clock mr-1"></i> {{ resa.heure_debut|time:"H:i" }} - {{ resa.heure_fin|time:"H:i" }}
+                    </p>
+                </div>
+
+                <!-- Info Prix -->
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">Prix payé</p>
+                    <p class="font-bold text-xl text-gray-700">{{ resa.prix_total|floatformat:2 }} €</p>
+                </div>
+                
+                <!-- Statut -->
+                <div class="text-center">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full
+                        {% if resa.etat == 'CONFIRMED' %} bg-green-100 text-green-800 
+                        {% elif resa.etat == 'PENDING' %} bg-yellow-100 text-yellow-800
+                        {% elif resa.etat == 'COMPLETED' %} bg-blue-100 text-blue-800
+                        {% elif resa.etat == 'CANCELLED' %} bg-red-100 text-red-800
+                        {% endif %}">
+                        {{ resa.get_etat_display }}
+                    </span>
+                </div>
+                
+                <!-- Actions -->
+                <div class="w-full md:w-auto text-center">
+                    {% if resa.etat == 'PENDING' %}
+                        <form action="{% url 'reservations:reessayer_paiement' pk=resa.pk %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition">
+                                Payer maintenant
+                            </button>
+                        </form>
+                    {% elif resa.etat == 'CONFIRMED' %}
+                        <form action="{% url 'reservations:annuler_reservation' pk=resa.pk %}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?');">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">
+                                Annuler
+                            </button>
+                        </form>
+                    {% elif resa.etat == 'COMPLETED' and not resa.commentaire %}
+                        <a href="{% url 'reservations:laisser_commentaire' reservation_id=resa.pk %}" class="block w-full px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600 transition">
+                            Laisser un avis
+                        </a>
+                    {% elif resa.etat == 'COMPLETED' and resa.commentaire %}
+                         <span class="text-sm text-green-600"><i class="fas fa-check-circle"></i> Avis laissé</span>
+                    {% else %}
+                        <span class="text-sm text-gray-500">Aucune action</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center p-8 bg-white rounded-lg shadow-md">
+                <p class="text-gray-500">Vous n'avez aucune réservation pour le moment.</p>
+            </div>
+        {% endfor %}
+    </div>
+    <div id="no-results-resa" class="hidden text-center p-8 bg-white rounded-lg shadow-md">
+        <p class="text-gray-500">Aucune réservation ne correspond à votre recherche.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const reservationsList = document.getElementById('reservations-list');
+        const noResultsMessage = document.getElementById('no-results-resa');
+        const allReservationCards = Array.from(reservationsList.querySelectorAll('.reservation-card'));
+
+        function filterReservations() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            allReservationCards.forEach(card => {
+                const salleName = card.dataset.salle;
+                const date = card.dataset.date;
+                
+                const isVisible = salleName.includes(searchTerm) || date.includes(searchTerm);
+
+                if (isVisible) {
+                    card.classList.remove('hidden');
+                    card.classList.add('fade-in');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            if (visibleCount === 0 && allReservationCards.length > 0) {
+                noResultsMessage.classList.remove('hidden');
+            } else {
+                noResultsMessage.classList.add('hidden');
+            }
+        }
+
+        searchInput.addEventListener('keyup', filterReservations);
+    });
+</script>
+{% endblock %}

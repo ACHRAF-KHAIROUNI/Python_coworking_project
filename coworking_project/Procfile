@@ -1,0 +1,1 @@
+web: gunicorn my_coworking_project.wsgi

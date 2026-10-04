@@ -1,0 +1,18 @@
+<h3>Votre réservation a été annulée par un administrateur</h3>
+<p>Bonjour {{ user.first_name }},</p>
+<p>
+    Nous vous informons que votre réservation pour la salle 
+    <strong>{{ reservation.salle.nom }}</strong> 
+    prévue le <strong>{{ reservation.date_reservation|date:"d/m/Y" }}</strong> 
+    a été annulée par notre équipe.
+</p>
+
+<p>
+    Le montant de <strong>{{ reservation.prix_total|floatformat:2 }} €</strong> 
+    a été directement re-crédité sur votre solde sur la plateforme.
+</p>
+<p>
+    Pour toute question, n'hésitez pas à nous contacter.
+</p>
+
+<p>L'équipe de {{ reservation.salle.societer.nom }}.</p>

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard CEO - {{ societe.nom }}{% endblock %}
+
+{% block content %}
+<div class="fade-in space-y-8">
+
+    <!-- En-tête du Dashboard -->
+    <div>
+        {% if societe %}
+            <h1 class="text-3xl font-bold text-gray-800">Tableau de bord de : <span class="text-blue-600">{{ societe.nom }}</span></h1>
+        {% else %}
+            <div class="p-4 rounded-lg bg-red-100 border border-red-400 text-red-700">
+                <h1 class="font-bold">Erreur de Configuration</h1>
+                <p>Aucune société n'est liée à votre compte CEO. Veuillez contacter le support.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if societe %}
+        <!-- Cartes de Statistiques -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Stat 1: Nombre de salles -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-door-open fa-2x text-blue-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500">Nombre de Salles</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ salles.count }}</p>
+                </div>
+            </div>
+            <!-- Stat 2: Note moyenne -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-star fa-2x text-yellow-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500">Note Moyenne Société</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ societe.vote|floatformat:1 }}/5.0</p>
+                </div>
+            </div>
+            <!-- Stat 3: Admins -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+                <div class="bg-indigo-100 p-3 rounded-full">
+                    <i class="fas fa-users-cog fa-2x text-indigo-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500">Administrateurs</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ societe.administrateurs.count }}</p>
+                </div>
+            </div>
+            <!-- Stat 4: À venir (ex: Réservations du jour) -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-calendar-day fa-2x text-green-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-500">Réservations Aujourd'hui</p>
+                    <p class="text-2xl font-bold text-gray-800">N/A</p> {# Logique à ajouter dans la vue #}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section de Gestion des Salles -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Gestion des Salles</h2>
+                <a href="{% url 'company:salle_add' %}" class="flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-plus mr-2"></i>
+                    Ajouter une Salle
+                </a>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Nom de la salle</th>
+                            <th scope="col" class="px-6 py-3">Capacité</th>
+                            <th scope="col" class="px-6 py-3">Prix / heure</th>
+                            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for salle in salles %}
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                {{ salle.nom }}
+                            </th>
+                            <td class="px-6 py-4">{{ salle.capacite }} pers.</td>
+                            <td class="px-6 py-4">{{ salle.prix_par_heure|floatformat:2 }} €</td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'company:salle_manage' pk=salle.pk %}" class="font-medium text-blue-600 hover:underline mr-3">Gérer</a>
+                                <a href="{% url 'company:salle_update' pk=salle.pk %}" class="font-medium text-indigo-600 hover:underline mr-3">Modifier</a>
+                                <a href="{% url 'company:salle_delete' pk=salle.pk %}" class.safe="font-medium text-red-600 hover:underline">Supprimer</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                Vous n'avez pas encore de salle. Cliquez sur "Ajouter une Salle" pour commencer.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

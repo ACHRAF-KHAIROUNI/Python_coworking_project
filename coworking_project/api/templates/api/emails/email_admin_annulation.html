@@ -1,0 +1,19 @@
+<h3>Annulation de votre réservation</h3>
+<p>Bonjour {{ user.first_name }},</p>
+<p>
+    Un administrateur de la société <strong>{{ reservation.salle.societer.nom }}</strong>
+    a procédé à l'annulation de votre réservation pour la salle <strong>{{ reservation.salle.nom }}</strong>
+    du {{ reservation.date_reservation|date:"d/m/Y" }}.
+</p>
+{% if remboursement %}
+    <p>
+        Le montant de <strong>{{ reservation.prix_total|floatformat:2 }}€</strong>
+        a été re-crédité sur votre solde sur la plateforme.
+    </p>
+{% else %}
+    <p>
+        L'annulation ayant eu lieu moins de 24 heures avant le début, aucun remboursement 
+        n'a été effectué, conformément à nos conditions.
+    </p>
+{% endif %}
+<p>Pour toute question, veuillez contacter directement la société.</p>

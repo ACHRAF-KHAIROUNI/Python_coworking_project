@@ -1,0 +1,11 @@
+<h3>Merci pour votre visite !</h3>
+<p>Bonjour {{ user.first_name }},</p>
+<p>
+    Votre réservation pour la salle <strong>{{ reservation.salle.nom }}</strong> 
+    du {{ reservation.date_reservation|date:"d/m/Y" }} a été marquée comme terminée.
+</p>
+<p>
+    Nous espérons que tout s'est bien passé. N'hésitez pas à laisser un avis 
+    depuis la section "Mes Réservations" de notre site pour partager votre expérience.
+</p>
+<p>L'équipe de {{ reservation.salle.societer.nom }}.</p>

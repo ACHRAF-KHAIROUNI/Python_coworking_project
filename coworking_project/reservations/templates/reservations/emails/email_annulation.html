@@ -1,0 +1,36 @@
+<!-- reservations/templates/reservations/emails/email_annulation.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation d'annulation</title>
+</head>
+<body style="font-family: sans-serif; color: #333;">
+    <h2>Confirmation d'annulation de votre réservation</h2>
+
+    <p>Bonjour {{ user.first_name }},</p>
+
+    <p>
+        Nous vous confirmons l'annulation de votre réservation pour la salle 
+        <strong>{{ reservation.salle.nom }}</strong> 
+        prévue le <strong>{{ reservation.date_reservation|date:"d/m/Y" }}</strong> 
+        de {{ reservation.heure_debut|time:"H:i" }} à {{ reservation.heure_fin|time:"H:i" }}.
+    </p>
+
+    <p>
+        Conformément à nos conditions, un remboursement d'un montant de 
+        <strong>{{ reservation.prix_total|floatformat:2 }} €</strong> 
+        a été effectué sous la forme d'un code de recharge.
+    </p>
+
+    <p>Voici votre code à utiliser lors de votre prochaine visite sur votre profil :</p>
+
+    <div style="background-color: #f2f2f2; border: 1px dashed #ccc; padding: 15px; text-align: center; margin: 20px 0;">
+        <strong style="font-size: 1.2em; letter-spacing: 2px;">{{ code_remboursement }}</strong>
+    </div>
+
+    <p>Nous espérons vous revoir bientôt.</p>
+
+    <p>L'équipe de notre plateforme de Coworking.</p>
+</body>
+</html>

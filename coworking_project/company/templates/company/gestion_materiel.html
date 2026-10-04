@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion du Matériel Général{% endblock %}
+
+{% block content %}
+<div class="fade-in space-y-8">
+
+    <!-- En-tête de la page -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">Gestion du Matériel Général</h1>
+        <p class="mt-1 text-gray-600">Gérez ici la liste de tous les équipements que vous pouvez ensuite assigner à vos salles.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Colonne de gauche : Formulaire d'ajout -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow-md h-full">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-4 mb-4 flex items-center">
+                    <i class="fas fa-plus-circle mr-3 text-blue-500"></i>
+                    Ajouter un Matériel
+                </h2>
+                <form action="{% url 'company:ajouter_materiel' %}" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="text-sm font-medium text-gray-700">{{ field.label }}</label>
+                        <div class="mt-1">
+                            {{ field }}
+                        </div>
+                        {% if field.errors %}
+                            <div class="text-red-600 text-xs mt-1">
+                                {% for error in field.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit"
+                            class="w-full flex justify-center py-2 px-4 border rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition">
+                        Ajouter à la liste
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Colonne de droite : Liste du matériel existant -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-4 mb-4 flex items-center">
+                    <i class="fas fa-box-open mr-3 text-indigo-500"></i>
+                    Liste Générale du Matériel
+                </h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Nom</th>
+                                <th scope="col" class="px-6 py-3">Catégorie</th>
+                                <th scope="col" class="px-6 py-3">Description</th>
+                                <th scope="col" class="px-6 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for materiel in materiels %}
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-6 py-4 font-medium text-gray-900">{{ materiel.nom }}</td>
+                                <td class="px-6 py-4">{{ materiel.categorie }}</td>
+                                <td class="px-6 py-4 text-gray-600 italic">{{ materiel.description|truncatewords:10 }}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <form action="{% url 'company:supprimer_materiel' pk=materiel.pk %}" method="post" onsubmit="return confirm('Attention, la suppression est définitive. Continuer ?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="font-medium text-red-600 hover:text-red-800 hover:underline">Supprimer</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-500">Aucun matériel n'a été ajouté à la liste générale.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ajoute les classes Tailwind aux champs du formulaire
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cible les champs du formulaire d'ajout
+        const form = document.querySelector('form[action="{% url "company:ajouter_materiel" %}"]');
+        if (form) {
+            form.querySelectorAll('input, textarea, select').forEach(field => {
+                // Ignore les champs cachés comme csrfmiddlewaretoken
+                if (field.type !== 'hidden') {
+                    field.classList.add(
+                        'w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 
+                        'rounded-lg', 'shadow-sm', 'focus:outline-none', 
+                        'focus:ring-2', 'focus:ring-blue-500'
+                    );
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

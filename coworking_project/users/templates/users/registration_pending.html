@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Vérifiez vos emails{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-10rem)]">
+    <div class="fade-in w-full max-w-lg p-8 text-center bg-white rounded-xl shadow-lg">
+        
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+            <!-- Icône d'envoi d'email -->
+            <i class="fas fa-paper-plane fa-3x text-green-600"></i>
+        </div>
+
+        <h1 class="mt-6 text-3xl font-bold text-gray-800">Presque terminé !</h1>
+        
+        <p class="mt-4 text-gray-600">
+            Merci pour votre inscription ! Nous avons envoyé un email de confirmation à l'adresse que vous avez fournie.
+        </p>
+        
+        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-700">
+                Veuillez cliquer sur le lien d'activation contenu dans cet email pour finaliser la création de votre compte.
+            </p>
+            <p class="mt-2 text-xs text-gray-500">
+                (Pensez à vérifier votre dossier de courrier indésirable si vous ne le trouvez pas.)
+            </p>
+        </div>
+
+        <div class="mt-8">
+            <a href="{% url 'home' %}" 
+               class="px-6 py-2 border rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 transition">
+                Retour à l'accueil
+            </a>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

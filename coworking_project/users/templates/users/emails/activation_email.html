@@ -1,0 +1,10 @@
+Bonjour {{ user.username }},
+
+Bienvenue sur notre plateforme de Coworking !
+Pour finaliser votre inscription et activer votre compte, veuillez cliquer sur le lien ci-dessous :
+
+http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+
+Si vous n'êtes pas à l'origine de cette demande, veuillez ignorer cet email.
+
+L'équipe du projet Coworking.

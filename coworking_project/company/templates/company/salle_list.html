@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Nos Salles de Coworking{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="mb-8 p-6 bg-white rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Découvrez nos Espaces de Coworking</h1>
+        <p class="text-gray-600">Trouvez la salle parfaite pour votre prochain projet, réunion ou journée de travail.</p>
+    </div>
+
+    <!-- Barre de recherche et de tri -->
+    <div class="mb-6 flex flex-col md:flex-row gap-4 items-center p-4 bg-white rounded-lg shadow-sm">
+        <div class="relative w-full md:w-1/2">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                <i class="fas fa-search text-gray-400"></i>
+            </span>
+            <input type="text" id="searchInput" placeholder="Rechercher par nom, ville..." 
+                   class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="w-full md:w-auto">
+            <select id="sortSelect" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="name-asc">Trier par nom (A-Z)</option>
+                <option value="name-desc">Trier par nom (Z-A)</option>
+                <option value="price-asc">Trier par prix (Croissant)</option>
+                <option value="price-desc">Trier par prix (Décroissant)</option>
+                <option value="capacity-asc">Trier par capacité (Croissant)</option>
+                <option value="capacity-desc">Trier par capacité (Décroissant)</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Grille des salles -->
+    <div id="salle-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for salle in salles %}
+            <div class="salle-card" 
+                 data-name="{{ salle.nom|lower }}"
+                 data-ville="{{ salle.societer.localisation|lower }}"
+                 data-price="{{ salle.prix_par_heure }}"
+                 data-capacity="{{ salle.capacite }}">
+                
+                <a href="{% url 'company:salle_detail' pk=salle.pk %}" class="block bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+                    <div class="relative">
+                        {% with salle.images.first as premiere_image %}
+                            {% if premiere_image %}
+                                <img src="{{ premiere_image.image }}" alt="Image de {{ salle.nom }}" class="w-full h-48 object-cover">
+                            {% else %}
+                                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image fa-3x text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        <div class="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            {{ salle.societer.localisation }}
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2 truncate">{{ salle.nom }}</h3>
+                        <div class="flex items-center text-sm text-gray-600 mb-2">
+                            <i class="fas fa-building mr-2"></i>
+                            <span>{{ salle.societer.nom }}</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-users mr-2"></i>
+                                <span>{{ salle.capacite }} pers.</span>
+                            </div>
+                            <span class="text-lg font-bold text-blue-600">{{ salle.prix_par_heure|floatformat:2 }} €/h</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% empty %}
+            <p class="text-center text-gray-500 col-span-full">Aucune salle n'est disponible pour le moment.</p>
+        {% endfor %}
+    </div>
+    <div id="no-results" class="hidden text-center text-gray-500 col-span-full mt-8">
+        <p>Aucune salle ne correspond à votre recherche.</p>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const salleGrid = document.getElementById('salle-grid');
+        const noResults = document.getElementById('no-results');
+        const originalCards = Array.from(salleGrid.querySelectorAll('.salle-card'));
+
+        function updateDisplay() {
+            // 1. Filtrage
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredCards = originalCards.filter(card => {
+                const name = card.dataset.name;
+                const ville = card.dataset.ville;
+                return name.includes(searchTerm) || ville.includes(searchTerm);
+            });
+
+            // 2. Tri
+            const sortValue = sortSelect.value;
+            filteredCards.sort((a, b) => {
+                const [sortKey, sortOrder] = sortValue.split('-');
+                let valA = a.dataset[sortKey];
+                let valB = b.dataset[sortKey];
+
+                if (sortKey === 'name') {
+                    return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
+                    valA = parseFloat(valA);
+                    valB = parseFloat(valB);
+                    return sortOrder === 'asc' ? valA - valB : valB - valA;
+                }
+            });
+
+            // 3. Affichage
+            salleGrid.innerHTML = ''; // Vider la grille
+            if (filteredCards.length === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+                filteredCards.forEach(card => {
+                    card.classList.add('fade-in'); // Ajoute une animation à l'apparition
+                    salleGrid.appendChild(card);
+                });
+            }
+        }
+
+        // Ajout des écouteurs d'événements
+        searchInput.addEventListener('keyup', updateDisplay);
+        sortSelect.addEventListener('change', updateDisplay);
+    });
+</script>
+{% endblock %}

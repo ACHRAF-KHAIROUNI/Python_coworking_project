@@ -1,0 +1,9 @@
+<h3>Votre réservation est confirmée !</h3>
+<p>Bonjour {{ user.first_name }},</p>
+<p>Excellente nouvelle, votre réservation pour la salle <strong>{{ reservation.salle.nom }}</strong> est confirmée.</p>
+<ul>
+    <li><strong>Date :</strong> {{ reservation.date_reservation|date:"d/m/Y" }}</li>
+    <li><strong>Créneau :</strong> De {{ reservation.heure_debut|time:"H:i" }} à {{ reservation.heure_fin|time:"H:i" }}</li>
+    <li><strong>Montant payé :</strong> {{ reservation.prix_total|floatformat:2 }}€</li>
+</ul>
+<p>Nous avons hâte de vous accueillir.</p>

@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+{% block title %}{{ titre_page }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-4xl bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+    
+    <!-- Header avec animation -->
+    <header class="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8">
+      <div class="absolute inset-0 bg-black/10"></div>
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <i class="fas fa-door-open text-lg"></i>
+          </div>
+          <h1 class="text-3xl font-bold">{{ titre_page }}</h1>
+        </div>
+        <p class="text-blue-100">Remplissez attentivement les informations ci-dessous pour créer votre salle.</p>
+      </div>
+      
+      <!-- Decorative elements -->
+      <div class="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+      <div class="absolute bottom-4 right-12 w-16 h-16 bg-white/5 rounded-full blur-lg"></div>
+    </header>
+
+    <!-- Progress indicator -->
+    <div class="px-8 py-4 bg-gray-50/50 border-b border-gray-200/50">
+      <div class="flex items-center gap-2 text-sm text-gray-600">
+        <i class="fas fa-info-circle text-blue-500"></i>
+        <span>Étape 1 sur 1 - Configuration de la salle</span>
+      </div>
+    </div>
+
+    <!-- Form content -->
+    <div class="p-8">
+      <form method="post" class="space-y-6" id="room-form">
+        {% csrf_token %}
+
+        <!-- Global errors with improved styling -->
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg animate-shake">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <i class="fas fa-exclamation-triangle text-red-500"></i>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-700 font-medium">{{ form.non_field_errors }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Form fields container -->
+        <div class="grid gap-6" id="form-fields">
+          {{ form.as_p }}
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex justify-between items-center pt-8 border-t border-gray-200">
+          <div class="flex items-center gap-2 text-sm text-gray-500">
+            <i class="fas fa-shield-alt text-green-500"></i>
+            <span>Vos données sont sécurisées</span>
+          </div>
+          
+          <div class="flex space-x-4">
+            <a href="{% url 'company:dashboard' %}"
+               class="px-6 py-3 border-2 border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 flex items-center gap-2 group">
+              <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform duration-200"></i>
+              Annuler
+            </a>
+            
+            <button type="submit"
+                    class="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group relative overflow-hidden"
+                    id="submit-btn">
+              <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              <i class="fas fa-save relative z-10"></i>
+              <span class="relative z-10">Enregistrer la salle</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 invisible transition-all duration-300">
+  <div class="bg-white rounded-2xl p-8 text-center shadow-2xl">
+    <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+    <p class="text-gray-700 font-medium">Enregistrement en cours...</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom input focus effects */
+.form-input:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+}
+
+.form-input {
+  transition: all 0.2s ease;
+}
+
+/* Improved checkbox and radio styling */
+input[type="checkbox"], input[type="radio"] {
+  accent-color: #3b82f6;
+  transform: scale(1.2);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('#room-form');
+  const submitBtn = document.querySelector('#submit-btn');
+  const loadingOverlay = document.querySelector('#loading-overlay');
+  
+  if (!form) return;
+
+  // Enhanced form field styling
+  form.querySelectorAll('p').forEach((p, index) => {
+    p.classList.add('group', 'relative');
+    
+    // Add staggered animation
+    p.style.animationDelay = `${index * 0.1}s`;
+    p.classList.add('animate-fade-in-up');
+
+    const label = p.querySelector('label');
+    if (label) {
+      label.classList.add(
+        'block', 'mb-2', 'font-semibold', 'text-gray-700', 'text-sm',
+        'group-hover:text-blue-600', 'transition-colors', 'duration-200'
+      );
+      
+      // Add required indicator
+      if (label.textContent && !label.textContent.includes('*')) {
+        const input = p.querySelector('input, textarea, select');
+        if (input && input.required) {
+          label.innerHTML += ' <span class="text-red-500">*</span>';
+        }
+      }
+    }
+
+    const input = p.querySelector('input, textarea, select');
+    if (input) {
+      input.classList.add(
+        'form-input', 'w-full', 'border-2', 'border-gray-200', 'rounded-xl', 
+        'px-4', 'py-3', 'shadow-sm', 'focus:outline-none', 'focus:ring-0', 
+        'focus:border-blue-500', 'transition-all', 'duration-200',
+        'hover:border-gray-300', 'placeholder-gray-400'
+      );
+
+      // Add icons for specific input types
+      if (input.type === 'email') {
+        addInputIcon(p, 'fas fa-envelope');
+      } else if (input.type === 'tel') {
+        addInputIcon(p, 'fas fa-phone');
+      } else if (input.type === 'text' && input.name.toLowerCase().includes('nom')) {
+        addInputIcon(p, 'fas fa-user');
+      } else if (input.tagName === 'TEXTAREA') {
+        addInputIcon(p, 'fas fa-comment-alt');
+      }
+
+      // Enhanced validation feedback
+      input.addEventListener('blur', validateField);
+      input.addEventListener('input', clearValidation);
+    }
+
+    const errorList = p.querySelector('.errorlist');
+    if (errorList) {
+      errorList.classList.add(
+        'text-red-600', 'text-xs', 'mt-2', 'list-none', 'p-0', 'm-0',
+        'animate-shake'
+      );
+      
+      // Style error items
+      errorList.querySelectorAll('li').forEach(li => {
+        li.classList.add('flex', 'items-center', 'gap-1');
+        li.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${li.textContent}`;
+      });
+    }
+  });
+
+  // Add input icons
+  function addInputIcon(container, iconClass) {
+    const input = container.querySelector('input, textarea, select');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative';
+    
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    
+    const icon = document.createElement('i');
+    icon.className = `${iconClass} absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm pointer-events-none`;
+    wrapper.appendChild(icon);
+    
+    input.classList.add('pl-10');
+  }
+
+  // Enhanced validation
+  function validateField(e) {
+    const field = e.target;
+    const container = field.closest('p');
+    
+    clearValidation({ target: field });
+    
+    if (field.required && !field.value.trim()) {
+      showFieldError(container, 'Ce champ est requis');
+      return false;
+    }
+    
+    if (field.type === 'email' && field.value && !isValidEmail(field.value)) {
+      showFieldError(container, 'Veuillez entrer une adresse email valide');
+      return false;
+    }
+    
+    showFieldSuccess(container);
+    return true;
+  }
+
+  function clearValidation(e) {
+    const container = e.target.closest('p');
+    const existingFeedback = container.querySelector('.validation-feedback');
+    if (existingFeedback) {
+      existingFeedback.remove();
+    }
+    container.classList.remove('error', 'success');
+  }
+
+  function showFieldError(container, message) {
+    container.classList.add('error');
+    const feedback = document.createElement('div');
+    feedback.className = 'validation-feedback text-red-600 text-xs mt-1 flex items-center gap-1 animate-shake';
+    feedback.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    container.appendChild(feedback);
+  }
+
+  function showFieldSuccess(container) {
+    container.classList.add('success');
+    const feedback = document.createElement('div');
+    feedback.className = 'validation-feedback text-green-600 text-xs mt-1 flex items-center gap-1';
+    feedback.innerHTML = `<i class="fas fa-check-circle"></i> Valide`;
+    container.appendChild(feedback);
+  }
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Enhanced form submission
+  form.addEventListener('submit', (e) => {
+    let isValid = true;
+    
+    form.querySelectorAll('input[required], textarea[required], select[required]').forEach(field => {
+      if (!validateField({ target: field })) {
+        isValid = false;
+      }
+    });
+
+    if (isValid) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          <span>Enregistrement...</span>
+        </div>
+      `;
+      
+      loadingOverlay.classList.remove('opacity-0', 'invisible');
+      
+      // Re-enable button after 10 seconds as fallback
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <i class="fas fa-save"></i>
+          <span>Enregistrer la salle</span>
+        `;
+        loadingOverlay.classList.add('opacity-0', 'invisible');
+      }, 10000);
+    } else {
+      e.preventDefault();
+      
+      // Scroll to first error
+      const firstError = form.querySelector('.error');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
+
+  // Add floating animation to header icons
+  const headerIcon = document.querySelector('header .fas');
+  if (headerIcon) {
+    headerIcon.classList.add('animate-float');
+  }
+});
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .group.error .form-input {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  }
+  
+  .group.success .form-input {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

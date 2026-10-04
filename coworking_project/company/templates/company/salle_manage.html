@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Gérer la Salle : {{ salle.nom }}{% endblock %}
+
+{% block content %}
+<div class="fade-in space-y-8">
+
+    <!-- En-tête de la page -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">Gérer la Salle : <span class="text-blue-600">{{ salle.nom }}</span></h1>
+        <p class="mt-1 text-gray-600">Ajoutez des images et assignez du matériel pour rendre votre salle plus attractive.</p>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Colonne 1 : Gestion des Images -->
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-4 mb-4 flex items-center">
+                    <i class="fas fa-images mr-3 text-teal-500"></i>
+                    Images de la Salle
+                </h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for image in salle.images.all %}
+                        <div class="relative group">
+                            <img src="{{ image.image }}" alt="{{ image.legende }}" class="rounded-lg object-cover w-full h-32">
+                            <form action="{% url 'company:salle_delete_image' pk=image.pk %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" title="Supprimer l'image">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p class="col-span-full text-sm text-gray-500">Aucune image pour cette salle.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Ajouter une nouvelle image</h3>
+                <form action="{% url 'company:salle_add_image' pk=salle.pk %}" method="post" enctype="multipart/form-data" class="space-y-4">
+                    {% csrf_token %}
+                    {{ image_form.as_p }}
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Uploader l'image</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Colonne 2 : Gestion du Matériel -->
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-4 mb-4 flex items-center">
+                    <i class="fas fa-box-open mr-3 text-indigo-500"></i>
+                    Matériel Assigné
+                </h2>
+                
+                <ul class="space-y-3">
+                    {% for item in salle.sallemateriel_set.all %}
+                        <li class="flex items-center justify-between p-2 rounded-md hover:bg-gray-50">
+                            <div>
+                                <span class="font-medium text-gray-800">{{ item.materiel.nom }}</span>
+                                <span class="text-sm text-gray-500">(x{{ item.quantite }})</span>
+                            </div>
+                            <form action="{% url 'company:retirer_materiel_salle' pk=item.pk %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-medium">Retirer</button>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <p class="text-sm text-gray-500">Aucun matériel assigné à cette salle.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Assigner du Matériel</h3>
+                <form action="{% url 'company:assigner_materiel_salle' pk=salle.pk %}" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    {{ materiel_form.as_p }}
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Assigner / Mettre à jour</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ajoute automatiquement les classes Tailwind à tous les champs des formulaires de cette page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cible le formulaire d'ajout d'image
+        let imageForm = document.querySelector('form[action^="/gestion/salle/"][action*="/add-image/"]');
+        if (imageForm) {
+            imageForm.querySelectorAll('input[type="file"], input[type="text"]').forEach(field => {
+                field.classList.add('w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 'rounded-lg');
+            });
+            imageForm.querySelector('label').classList.add('text-sm', 'font-medium', 'text-gray-700', 'mb-1', 'block');
+        }
+
+        // Cible le formulaire d'assignation de matériel
+        let materielForm = document.querySelector('form[action^="/gestion/salle/"][action*="/assigner-materiel/"]');
+        if (materielForm) {
+            materielForm.querySelectorAll('select, input[type="number"]').forEach(field => {
+                field.classList.add('w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 'rounded-lg');
+            });
+            materielForm.querySelectorAll('label').forEach(label => label.classList.add('text-sm', 'font-medium', 'text-gray-700', 'mb-1', 'block'));
+        }
+    });
+</script>
+{% endblock %}

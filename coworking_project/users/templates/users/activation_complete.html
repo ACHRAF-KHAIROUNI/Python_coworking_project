@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Compte Activé !{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-10rem)]">
+    <div class="fade-in w-full max-w-lg p-8 text-center bg-white rounded-xl shadow-lg">
+        
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+            <!-- Icône de succès -->
+            <i class="fas fa-check-double fa-3x text-green-600"></i>
+        </div>
+
+        <h1 class="mt-6 text-3xl font-bold text-gray-800">Activation Réussie !</h1>
+        
+        <p class="mt-4 text-gray-600">
+            Félicitations ! Votre compte a été activé avec succès. Vous faites maintenant partie de notre communauté.
+        </p>
+        
+        <div class="mt-8">
+            <a href="{% url 'login' %}" 
+               class="inline-block w-full px-6 py-3 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-blue-600
+                      hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                Se connecter
+            </a>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

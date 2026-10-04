@@ -1,0 +1,52 @@
+# ==========================================
+# GitIgnore pour le projet Coworking complet
+# ==========================================
+
+# Variables d'environnement & Secrets (CRITIQUE)
+.env
+*.env
+.env.*
+!.env.example
+
+# Python & Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.sqlite3
+*.log
+local_settings.py
+db.sqlite3-journal
+
+# Fichiers statiques collectés
+staticfiles/
+
+# Java & Maven
+target/
+*.class
+*.jar
+!app-1.0-jar-with-dependencies.jar
+.project
+.classpath
+.settings/
+PFA.userlibraries
+
+# IDEs & Editeurs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.iml
+*.eml
+
+# Système d'exploitation
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+.git_backup/

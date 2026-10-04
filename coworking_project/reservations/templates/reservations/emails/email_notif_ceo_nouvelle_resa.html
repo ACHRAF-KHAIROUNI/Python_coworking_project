@@ -1,0 +1,9 @@
+<h3>Nouvelle réservation pour votre salle {{ reservation.salle.nom }}</h3>
+<p>Bonjour {{ ceo.first_name }},</p>
+<p>Un client, {{ user.username }}, vient de faire une réservation pour l'une de vos salles.</p>
+<ul>
+    <li><strong>Salle :</strong> {{ reservation.salle.nom }}</li>
+    <li><strong>Date :</strong> {{ reservation.date_reservation|date:"d/m/Y" }}</li>
+    <li><strong>Créneau :</strong> De {{ reservation.heure_debut|time:"H:i" }} à {{ reservation.heure_fin|time:"H:i" }}</li>
+    <li><strong>Statut :</strong> {{ reservation.get_etat_display }}</li>
+</ul>

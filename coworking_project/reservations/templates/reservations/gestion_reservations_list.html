@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Réservations{% endblock %}
+
+{% block content %}
+<div class="fade-in space-y-6">
+
+    <!-- En-tête de la page -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">Gestion des Réservations</h1>
+        <p class="mt-1 text-gray-600">Supervisez et gérez toutes les réservations de votre société.</p>
+    </div>
+
+    <!-- Section des Filtres -->
+    <div class="p-4 bg-white rounded-lg shadow-sm">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+            
+            <!-- Filtre Salle -->
+            <div class="relative">
+                <label for="salle-filter" class="text-sm font-medium text-gray-700">Salle</label>
+                <select id="salle-filter" name="salle" class="w-full mt-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Toutes les salles</option>
+                    {% for salle in salles_filtre %}
+                        <option value="{{ salle.pk }}" {% if request.GET.salle == salle.pk|stringformat:"s" %}selected{% endif %}>{{ salle.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filtre État -->
+            <div class="relative">
+                <label for="etat-filter" class="text-sm font-medium text-gray-700">État</label>
+                <select id="etat-filter" name="etat" class="w-full mt-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tous les états</option>
+                    {% for code, nom in view.model.STATE_CHOICES %}
+                        <option value="{{ code }}" {% if request.GET.etat == code %}selected{% endif %}>{{ nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filtre Date -->
+            <div class="relative">
+                 <label for="date-filter" class="text-sm font-medium text-gray-700">Date</label>
+                <input type="date" id="date-filter" name="date" value="{{ request.GET.date }}" class="w-full mt-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex items-end gap-2 pt-5">
+                <button type="submit" class="w-full flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-filter mr-2"></i>Filtrer
+                </button>
+                <a href="{% url 'reservations:gestion_reservations' %}" class="w-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tableau des réservations -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Client</th>
+                        <th scope="col" class="px-6 py-3">Salle</th>
+                        <th scope="col" class="px-6 py-3">Date & Créneau</th>
+                        <th scope="col" class="px-6 py-3">Prix</th>
+                        <th scope="col" class="px-6 py-3">État</th>
+                        <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resa in reservations %}
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-900">{{ resa.user.username }}</td>
+                        <td class="px-6 py-4">{{ resa.salle.nom }}</td>
+                        <td class="px-6 py-4">
+                            <div>{{ resa.date_reservation|date:"d M Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ resa.heure_debut|time:"H:i" }} - {{ resa.heure_fin|time:"H:i" }}</div>
+                        </td>
+                        <td class="px-6 py-4">{{ resa.prix_total|floatformat:2 }} €</td>
+                        <td class="px-6 py-4">
+                             <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                {% if resa.etat == 'CONFIRMED' %} bg-green-100 text-green-800 
+                                {% elif resa.etat == 'PENDING' %} bg-yellow-100 text-yellow-800
+                                {% elif resa.etat == 'COMPLETED' %} bg-blue-100 text-blue-800
+                                {% elif resa.etat == 'CANCELLED' %} bg-red-100 text-red-800
+                                {% endif %}">
+                                {{ resa.get_etat_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            {% if resa.etat == 'CONFIRMED' or resa.etat == 'PENDING' %}
+                                <form action="{% url 'reservations:annuler_reservation_admin' pk=resa.pk %}" method="post" onsubmit="return confirm('Annuler cette réservation pour le client ? Le client sera remboursé sur son solde.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="font-medium text-red-600 hover:underline">Annuler</button>
+                                </form>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-8 text-gray-500">Aucune réservation trouvée pour les critères actuels.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="flex items-center justify-between pt-4">
+        <div class="text-sm text-gray-700">
+            Page <span class="font-medium">{{ page_obj.number }}</span> sur <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+                <a href="?page=1&{{ request.GET.urlencode | cut:'page=' }}" class="px-3 py-1 border rounded-lg hover:bg-gray-100">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode | cut:'page=' }}" class="px-3 py-1 border rounded-lg hover:bg-gray-100">‹</a>
+            {% endif %}
+
+            <span class="px-3 py-1 text-blue-600 border border-blue-500 rounded-lg">{{ page_obj.number }}</span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode | cut:'page=' }}" class="px-3 py-1 border rounded-lg hover:bg-gray-100">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode | cut:'page=' }}" class="px-3 py-1 border rounded-lg hover:bg-gray-100">»</a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+</div>
+{% endblock %}

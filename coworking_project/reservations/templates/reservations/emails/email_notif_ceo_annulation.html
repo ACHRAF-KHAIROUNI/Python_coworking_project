@@ -1,0 +1,11 @@
+
+<h3>Annulation d'une réservation pour votre salle {{ reservation.salle.nom }}</h3>
+<p>Bonjour {{ ceo.first_name }},</p>
+<p>Le client, <strong>{{ user.username }}</strong>, a annulé sa réservation pour l'une de vos salles.</p>
+<p>Le créneau suivant est de nouveau libre :</p>
+<ul>
+    <li><strong>Salle :</strong> {{ reservation.salle.nom }}</li>
+    <li><strong>Date :</strong> {{ reservation.date_reservation|date:"d/m/Y" }}</li>
+    <li><strong>Créneau :</strong> De {{ reservation.heure_debut|time:"H:i" }} à {{ reservation.heure_fin|time:"H:i" }}</li>
+</ul>
+<p>Le montant de {{ reservation.prix_total|floatformat:2 }}€ a été débité de votre solde et remboursé au client.</p>

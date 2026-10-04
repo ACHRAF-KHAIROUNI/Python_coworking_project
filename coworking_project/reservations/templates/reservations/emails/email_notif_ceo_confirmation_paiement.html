@@ -1,0 +1,10 @@
+<h3>Paiement reçu - Une réservation est confirmée</h3>
+<p>Bonjour {{ ceo.first_name }},</p>
+<p>Bonne nouvelle ! Le client, <strong>{{ user.username }}</strong>, a finalisé le paiement pour sa réservation qui était en attente.</p>
+<p>La réservation suivante est maintenant <strong>confirmée</strong> :</p>
+<ul>
+    <li><strong>Salle :</strong> {{ reservation.salle.nom }}</li>
+    <li><strong>Date :</strong> {{ reservation.date_reservation|date:"d/m/Y" }}</li>
+    <li><strong>Créneau :</strong> De {{ reservation.heure_debut|time:"H:i" }} à {{ reservation.heure_fin|time:"H:i" }}</li>
+</ul>
+<p>Le montant de {{ reservation.prix_total|floatformat:2 }}€ a été ajouté à votre solde.</p>
